@@ -13,8 +13,8 @@ public interface LocalizacaoRepository extends JpaRepository<Localizacao, Long> 
 
 	List<Localizacao> findByPrefixoOrderByDataHoraAsc(int prefixo);
 
-	@Query(value = "select distinct on (datahora) * from localizacao_crawler where prefixo = ?1 order by datahora asc;", nativeQuery = true)
-	public List<Localizacao> findByPrefixoOnDistinctDataHoraOrderByDatahoraAsc(int prefixo);
+	@Query(value = "select distinct on (datahora) * from localizacao_crawler where prefixo = ?1 and linha = ?2 order by datahora asc;", nativeQuery = true)
+	public List<Localizacao> findByPrefixoAndLinhaOnDistinctDataHoraOrderByDatahoraAsc(int prefixo, String linha);
 
 	@Query("select distinct prefixo from Localizacao where linha = ?1")
 	List<Integer> findDistinctPrefixoByLinha(String Linha);

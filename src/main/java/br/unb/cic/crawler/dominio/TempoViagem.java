@@ -61,11 +61,11 @@ public class TempoViagem {
 		this.dataHora = dataHora;
 	}
 
-	public String getNome() {
+	public String getElementoGrafo() {
 		return elementoGrafo;
 	}
 
-	public void setNome(String nome) {
+	public void setElementoGrafo(String nome) {
 		this.elementoGrafo = nome;
 	}
 
