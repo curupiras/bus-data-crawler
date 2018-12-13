@@ -24,7 +24,7 @@ public class ClienteRest {
 
 	// private static final Logger logger = Logger.getLogger(ClienteRest.class);
 
-	@Scheduled(initialDelay = 0, fixedRate = 5000)
+//	@Scheduled(initialDelay = 0, fixedRate = 5000)
 	public void scheduledTask() {
 
 		DtoFrota dtoFrota = restTemplate.getForObject(url, DtoFrota.class);
