@@ -81,7 +81,10 @@ public class ProcessadorTempoViagem {
 
 	}
 
+	// TODO:Tratar casos em que há interrupção do envio de sinal (diferença de
+	// tempo muito grande entre timestamp e outro.
 	private void processarTempoViagem(int prefixo) {
+		logger.info("Iniciando processamento para o prefixo " + prefixo);
 		List<Localizacao> localizacoes = localizacaoRepository
 				.findByPrefixoAndLinhaOnDistinctDataHoraOrderByDatahoraAsc(prefixo, LINHA_CIRCULAR);
 		Localizacao localizacaoAnterior = null;
@@ -89,6 +92,11 @@ public class ProcessadorTempoViagem {
 		double posicaoNoArcoAnterior = 0;
 		Arco arcoAnterior = null;
 		TempoViagem tempoViagem = new TempoViagem();
+
+		if (localizacoes.size() < 2) {
+			logger.warn("Há menos que duas localizações para o prefixo: " + prefixo);
+			return;
+		}
 
 		for (Localizacao localizacao : localizacoes) {
 
