@@ -27,6 +27,7 @@ public class ProcessadorTempoViagem {
 
 	private static final Logger logger = Logger.getLogger(ProcessadorTempoViagem.class);
 	private static final String LINHA_CIRCULAR = "0.031";
+	private static final int TRINTA_MINUTOS = 60 * 30;
 
 	private List<Arco> arcos;
 	private List<No> nos;
@@ -74,10 +75,12 @@ public class ProcessadorTempoViagem {
 	@Scheduled(initialDelay = 0, fixedRate = 500000)
 	public void processarTempoViagem() {
 
+		logger.info("Iniciando processamento de tempo de viagem");
 		List<Integer> prefixos = localizacaoRepository.findDistinctPrefixoByLinha(LINHA_CIRCULAR);
 		for (int prefixo : prefixos) {
 			processarTempoViagem(prefixo);
 		}
+		logger.info("Finalizado processamento de tempo de viagem");
 
 	}
 
@@ -87,11 +90,12 @@ public class ProcessadorTempoViagem {
 		logger.info("Iniciando processamento para o prefixo " + prefixo);
 		List<Localizacao> localizacoes = localizacaoRepository
 				.findByPrefixoAndLinhaOnDistinctDataHoraOrderByDatahoraAsc(prefixo, LINHA_CIRCULAR);
+
+		// Inicializa variáveis
 		Localizacao localizacaoAnterior = null;
-		double posicaoInicial = 0;
 		double posicaoNoArcoAnterior = 0;
 		Arco arcoAnterior = null;
-		TempoViagem tempoViagem = new TempoViagem();
+		TempoViagem tempoViagem = null;
 
 		if (localizacoes.size() < 2) {
 			logger.warn("Há menos que duas localizações para o prefixo: " + prefixo);
@@ -100,31 +104,75 @@ public class ProcessadorTempoViagem {
 
 		for (Localizacao localizacao : localizacoes) {
 
+			// List<Integer> lista = new ArrayList<>();
+			// lista.add(211365);
+			// lista.add(211420);
+			// lista.add(211475);
+			// lista.add(211530);
+			// lista.add(211585);
+			long id = localizacao.getId();
+			if (id == 211365) {
+				logger.info("teste");
+			}
+
 			// Arco mais proximo do ponto da localizacao
 			Arco arcoMaisProximo = processadorGeo.arcoMaisProximo(arcos, localizacao);
 
-			// Se a localizacao estiver muito longe de qualquer arco continue.
+			// Se a localizacao estiver muito longe continue.
 			if (arcoMaisProximo == null) {
 				continue;
+			}
+
+			// Trata o problema de superposição dos arcos 49 e 62
+			if (arcoMaisProximo.getId() == 49 || arcoMaisProximo.getId() == 62) {
+				long idAnterior = arcoAnterior.getId();
+				if (idAnterior <= 49) {
+					arcoMaisProximo = arcos.get(48);
+				} else {
+					arcoMaisProximo = arcos.get(61);
+				}
 			}
 
 			Point pontoSobreArco = processadorGeo.getPontoSobreArco(arcoMaisProximo, localizacao);
 			double posicaoNoArco = processadorGeo.getPosicaoNoArco(arcoMaisProximo, pontoSobreArco);
 
-			if (tempoViagem.getElementoGrafo() == null) {
-				// Se primeira localizacao, armazena dados no TempoViagem
-				tempoViagem.setDataHora(localizacao.getDataHora());
-				tempoViagem.setElementoGrafo(arcoMaisProximo.getNome());
-				tempoViagem.setOnibus(Integer.toString(localizacao.getPrefixo()));
-				posicaoInicial = posicaoNoArco;
-			} else if (tempoViagem.getElementoGrafo().equals(arcoMaisProximo.getNome())) {
-				// Se arco igual da localizacao anterior, acumula o tempo gasto
-				// no TempoViagem
-				long horaInicial = tempoViagem.getDataHora().getTime();
-				long horaFinal = localizacao.getDataHora().getTime();
-				long milisegundos = horaFinal - horaInicial;
-				int segundos = (int) milisegundos / 1000;
-				tempoViagem.setTempo(segundos);
+			if (tempoViagem == null) {
+
+				if (localizacaoAnterior == null || arcoAnterior == arcoMaisProximo) {
+					localizacaoAnterior = localizacao;
+					posicaoNoArcoAnterior = posicaoNoArco;
+					arcoAnterior = arcoMaisProximo;
+					continue;
+				}
+			}
+
+			// Trata Problema de o ônibus voltar para arco anterior
+			if (arcoMaisProximo.getId() == arcoAnterior.getId() - 1) {
+				// Inicializa variáveis
+				localizacaoAnterior = null;
+				posicaoNoArcoAnterior = 0;
+				arcoAnterior = null;
+				tempoViagem = null;
+				continue;
+			}
+
+			long horaAnterior = localizacaoAnterior.getDataHora().getTime();
+			long horaAtual = localizacao.getDataHora().getTime();
+			long milisegundos = horaAtual - horaAnterior;
+			int segundos = (int) milisegundos / 1000;
+
+			if (segundos > TRINTA_MINUTOS) {
+				// Inicializa variáveis
+				localizacaoAnterior = null;
+				posicaoNoArcoAnterior = 0;
+				arcoAnterior = null;
+				tempoViagem = null;
+				continue;
+			}
+
+			if (arcoAnterior == arcoMaisProximo) {
+				// Se arco igual da localizacao anterior, acumula o tempo
+				tempoViagem.setTempo(tempoViagem.getTempo() + segundos);
 			} else {
 
 				List<Arco> arcosAtravessados = new ArrayList<Arco>();
@@ -134,12 +182,6 @@ public class ProcessadorTempoViagem {
 					arcosAtravessados.add(arco);
 					arco = (Arco) arco.getProximo().getProximo();
 				}
-
-				// Se arco diferente do arco anterior
-				long horaAnterior = localizacaoAnterior.getDataHora().getTime();
-				long horaAtual = localizacao.getDataHora().getTime();
-				long milisegundos = horaAtual - horaAnterior;
-				int segundos = (int) milisegundos / 1000;
 
 				// Caucula distancia percorrida no arco atual e o que falta dos
 				// anteriores
@@ -152,20 +194,15 @@ public class ProcessadorTempoViagem {
 				double distanciaTotal = distanciaArcoAnterior + distanciaArcosAtravessados + distanciaArcoAtual;
 
 				// Estima o tempo gasto no arco anterior
-				double tempoGastoArcoAnterior = distanciaArcoAnterior / distanciaTotal * segundos;
+				double tempoGastoArcoAnterior = (distanciaArcoAnterior / distanciaTotal) * segundos;
 
-				// Acumula no TempoViagem o tempo gasto no arco anterior
-				tempoViagem.setTempo(tempoViagem.getTempo() + tempoGastoArcoAnterior);
-				if (posicaoInicial != 0) {
-					// Se foi o primeiro arco computado estimar o tempo gasto
-					// antes do inicio das medidas
-					double tempoComputado = tempoViagem.getTempo();
-					double tempoFaltante = (tempoComputado * posicaoInicial) / (1 - posicaoInicial);
-					tempoViagem.setTempo(tempoComputado + tempoFaltante);
-					posicaoInicial = 0;
+				if (tempoViagem != null) {
+					// Acumula no TempoViagem o tempo gasto no arco anterior
+					tempoViagem.setTempo(tempoViagem.getTempo() + tempoGastoArcoAnterior);
+
+					// Salva o TempoViagem computado
+					TempoViagemRepository.save(tempoViagem);
 				}
-				// Salva o TempoViagem computado
-				TempoViagemRepository.save(tempoViagem);
 
 				for (Arco arcoAtravessado : arcosAtravessados) {
 					// Estima o tempo gasto no arco atravessado
@@ -182,8 +219,7 @@ public class ProcessadorTempoViagem {
 
 				// Cria novo TempoViagem e adiciona o tempo gasto no arco atual
 				tempoViagem = new TempoViagem();
-				double tempoGastoArcoAtual = (distanciaArcoAtual / (distanciaArcoAnterior + distanciaArcoAtual))
-						* segundos;
+				double tempoGastoArcoAtual = (distanciaArcoAtual / distanciaTotal) * segundos;
 				tempoViagem.setDataHora(localizacao.getDataHora());
 				tempoViagem.setElementoGrafo(arcoMaisProximo.getNome());
 				tempoViagem.setOnibus(Integer.toString(localizacao.getPrefixo()));
@@ -196,14 +232,6 @@ public class ProcessadorTempoViagem {
 			posicaoNoArcoAnterior = posicaoNoArco;
 			arcoAnterior = arcoMaisProximo;
 		}
-
-		// Se for o último arco computado estimar o tempo que seria gasto para
-		// atravessá-lo
-		double tempoComputado = tempoViagem.getTempo();
-		double tempoFaltante = (tempoComputado * (1 - posicaoInicial)) / (posicaoInicial);
-		tempoViagem.setTempo(tempoComputado + tempoFaltante);
-		TempoViagemRepository.save(tempoViagem);
-		posicaoInicial = 0;
 
 	}
 
