@@ -61,7 +61,6 @@ public class ProcessadorGeo {
 	public double getPosicaoNoArco(Arco arcoMaisProximo, Point pontoSobreArco) {
 	    LocationIndexedLine line = new LocationIndexedLine(arcoMaisProximo.getGeoLinha());
 	    LinearLocation l = line.indexOf(pontoSobreArco.getCoordinate());
-	    Coordinate coodinate = line.extractPoint(l);
 	    return l.getSegmentFraction();
 	}
 

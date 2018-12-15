@@ -104,17 +104,6 @@ public class ProcessadorTempoViagem {
 
 		for (Localizacao localizacao : localizacoes) {
 
-			// List<Integer> lista = new ArrayList<>();
-			// lista.add(211365);
-			// lista.add(211420);
-			// lista.add(211475);
-			// lista.add(211530);
-			// lista.add(211585);
-			long id = localizacao.getId();
-			if (id == 211365) {
-				logger.info("teste");
-			}
-
 			// Arco mais proximo do ponto da localizacao
 			Arco arcoMaisProximo = processadorGeo.arcoMaisProximo(arcos, localizacao);
 
@@ -124,12 +113,22 @@ public class ProcessadorTempoViagem {
 			}
 
 			// Trata o problema de superposição dos arcos 49 e 62
-			if (arcoMaisProximo.getId() == 49 || arcoMaisProximo.getId() == 62) {
+			if ((arcoMaisProximo.getId() == 49 || arcoMaisProximo.getId() == 62) && arcoAnterior != null) {
 				long idAnterior = arcoAnterior.getId();
 				if (idAnterior <= 49) {
 					arcoMaisProximo = arcos.get(48);
 				} else {
 					arcoMaisProximo = arcos.get(61);
+				}
+			}
+
+			// Trata o problema de superposição dos arcos 80 e 82
+			if ((arcoMaisProximo.getId() == 80 || arcoMaisProximo.getId() == 82) && arcoAnterior != null) {
+				long idAnterior = arcoAnterior.getId();
+				if (idAnterior <= 80) {
+					arcoMaisProximo = arcos.get(79);
+				} else {
+					arcoMaisProximo = arcos.get(81);
 				}
 			}
 
