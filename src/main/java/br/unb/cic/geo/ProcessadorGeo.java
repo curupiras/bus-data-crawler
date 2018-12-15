@@ -20,7 +20,7 @@ public class ProcessadorGeo {
 
 	private static final Logger logger = Logger.getLogger(ProcessadorGeo.class);
 
-	private static final double MAXIMA_DISTANCIA = 0.003;
+	private static final double MAXIMA_DISTANCIA = 0.001;
 
 	public void encontrarArco(Point ponto) {
 
