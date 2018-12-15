@@ -65,18 +65,18 @@ public class PreProcessadorDeDados {
 
 	private double getVelocidadeMedia(TempoViagem tempoDeViagem) {
 		double velocidadeMedia;
-		List<Localizacao> localizacoesAnteriores = getLocalizacoesAnteriores(tempoDeViagem.getOnibus(),
-				tempoDeViagem.getDataHora());
+		List<Localizacao> localizacoesAnteriores = getLocalizacoesAnteriores(
+				Integer.parseInt(tempoDeViagem.getOnibus()), tempoDeViagem.getDataHora());
 
 		velocidadeMedia = util.calculaMedia(localizacoesAnteriores);
 		if (velocidadeMedia == 0) {
-			velocidadeMedia = getUltimaLocalizacao(tempoDeViagem.getOnibus(), tempoDeViagem.getDataHora())
-					.getVelocidade();
+			velocidadeMedia = getUltimaLocalizacao(Integer.parseInt(tempoDeViagem.getOnibus()),
+					tempoDeViagem.getDataHora()).getVelocidade();
 		}
 		return velocidadeMedia;
 	}
 
-	private List<Localizacao> getLocalizacoesAnteriores(String prefixo, Date dataHora) {
+	private List<Localizacao> getLocalizacoesAnteriores(int prefixo, Date dataHora) {
 
 		if (quantidadeDeAmostrasParaCalculoDaVelocidadeMedia == 6) {
 			return localizacaoRepository.findTop6ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(prefixo, dataHora);
@@ -93,7 +93,7 @@ public class PreProcessadorDeDados {
 		}
 	}
 
-	private Localizacao getUltimaLocalizacao(String onibus, Date data) {
+	private Localizacao getUltimaLocalizacao(int onibus, Date data) {
 		return localizacaoRepository.findTop1ByPrefixoAndDataHoraLessThanEqualOrderByDataHoraDesc(onibus, data);
 	}
 

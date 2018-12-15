@@ -22,7 +22,7 @@ public class GeradorCsv {
 		PrintWriter pw = null;
 
 		try {
-			pw = new PrintWriter(new File(arco.getNome() + ".csv"));
+			pw = new PrintWriter(new File("dados/" + arco.getNome() + ".csv"));
 			StringBuilder sb = new StringBuilder();
 
 			for (Instancia instancia : instancias) {
@@ -56,7 +56,7 @@ public class GeradorCsv {
 			pw.close();
 		}
 
-		logger.info("Inicio da criação do arquivo csv para o arco " + arco.getNome());
+		logger.info("Fim da criação do arquivo csv para o arco " + arco.getNome());
 
 	}
 

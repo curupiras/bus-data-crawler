@@ -14,19 +14,19 @@ public interface LocalizacaoRepository extends JpaRepository<Localizacao, Long> 
 
 	List<Localizacao> findByPrefixoOrderByDataHoraAsc(int prefixo);
 
-	List<Localizacao> findTop6ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(String prefixo, Date dataHora);
+	List<Localizacao> findTop6ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(int prefixo, Date dataHora);
 
-	List<Localizacao> findTop5ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(String prefixo, Date dataHora);
+	List<Localizacao> findTop5ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(int prefixo, Date dataHora);
 
-	List<Localizacao> findTop4ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(String prefixo, Date dataHora);
+	List<Localizacao> findTop4ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(int prefixo, Date dataHora);
 
-	List<Localizacao> findTop3ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(String prefixo, Date dataHora);
+	List<Localizacao> findTop3ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(int prefixo, Date dataHora);
 
-	List<Localizacao> findTop2ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(String prefixo, Date dataHora);
+	List<Localizacao> findTop2ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(int prefixo, Date dataHora);
 
-	List<Localizacao> findTop1ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(String prefixo, Date dataHora);
+	List<Localizacao> findTop1ByPrefixoAndDataHoraLessThanOrderByDataHoraDesc(int prefixo, Date dataHora);
 
-	Localizacao findTop1ByPrefixoAndDataHoraLessThanEqualOrderByDataHoraDesc(String prefixo, Date dataHora);
+	Localizacao findTop1ByPrefixoAndDataHoraLessThanEqualOrderByDataHoraDesc(int prefixo, Date dataHora);
 
 	@Query(value = "select distinct on (datahora) * from localizacao_crawler where prefixo = ?1 and linha = ?2 order by datahora asc;", nativeQuery = true)
 	public List<Localizacao> findByPrefixoAndLinhaOnDistinctDataHoraOrderByDatahoraAsc(int prefixo, String linha);
