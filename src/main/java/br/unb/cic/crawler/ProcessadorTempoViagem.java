@@ -72,7 +72,7 @@ public class ProcessadorTempoViagem {
 		nos.get(0).setAnterior(arcos.get(arcos.size() - 1));
 	}
 
-	@Scheduled(initialDelay = 0, fixedRate = 500000)
+//	@Scheduled(initialDelay = 0, fixedRate = 500000)
 	public void processarTempoViagem() {
 
 		logger.info("Iniciando processamento de tempo de viagem");

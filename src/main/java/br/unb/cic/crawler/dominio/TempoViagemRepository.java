@@ -11,6 +11,7 @@ public interface TempoViagemRepository extends JpaRepository<TempoViagem, Long> 
 
 	TempoViagem findById(long id);
 	List<TempoViagem> findByElementoGrafoAndProcessadoAndTempoNotNullOrderByDataHoraDesc(String nome, boolean processado);
+	List<TempoViagem> findByElementoGrafoOrderByDataHoraDesc(String elementoGrafo);
 	
 	@Modifying
 	@Transactional
